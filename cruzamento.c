@@ -11,13 +11,13 @@
 #include <semaphore.h>
 #include <unistd.h>
 
-#define NUM_TRENS 15  //Quantidade de trens gerada
+#define NUM_TRENS 10 //Quantidade de trens gerada
 
-                      //Direção trem no cruzamento
-                          //De A1 para A2: 0    
-                          //De A1 para B2: 1
-                          //De B1 para A2: 2
-                          //De B1 para B2: 3
+//Direção do trem no cruzamento
+#define A1_TO_A2 0
+#define A1_TO_B2 1
+#define B1_TO_A2 2
+#define B1_TO_B2 3                 
 
 //Criação da struct com informações de prioridade e direção do trem
 typedef struct{
@@ -61,7 +61,21 @@ int main() {
     Trem trens[NUM_TRENS];
     for (int i = 0; i < NUM_TRENS; i++) {
         trens[i].prioridade = rand() % 3;            //Definição de prioridade aleatória (0: baixa, 1: média, 2: alta)
-        trens[i].direcao = rand() % 4;               // Definição de direção aleatória (entre 0 e 3 - definição própria, legenda no início do código)
+        int direcao_aleatoria = rand() % 4;          // Definição de direção aleatória (entre 0 e 3 - definição própria, legenda no início do código)
+                                                           
+        switch (direcao_aleatoria){                  // Mapeamento da direção aleatória para as direções permitidas
+            case 0:
+            case 1:
+                trens[i].direcao = A1_TO_A2;
+                break;
+            case 2:
+                trens[i].direcao = B1_TO_A2;
+                break;
+            case 3:
+                trens[i].direcao = B1_TO_B2;
+                break;
+        }
+      
         pthread_create(&trens[i].thread, NULL, funcao_fluxo, (void *)&trens[i]);
         sleep(rand() % 3);                           //Intervalo aleatório para a chegada de um novo trem (entre 0 e 2seg)
     }
@@ -71,5 +85,8 @@ int main() {
         pthread_join(trens[i].thread, NULL);
     }
 
+    sem_destroy(&semaforo_cruzamento);
+    sem_destroy(&semaforo_prioridade);
+  
     return 0;
 }
